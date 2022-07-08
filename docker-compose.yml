@@ -5,6 +5,10 @@ networks:
     driver: ${NETWORKS_DRIVER}
   backend:
     driver: ${NETWORKS_DRIVER}
+  external:
+    driver: ${NETWORKS_DRIVER}
+    external:
+      name: external
 volumes:
   mysql:
     driver: ${VOLUMES_DRIVER}
@@ -412,6 +416,7 @@ services:
         - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
         - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
         - ${NGINX_SSL_PATH}:/etc/nginx/ssl
+        - ./certbot/letsencrypt/:/var/www/letsencrypt
       ports:
         - "${NGINX_HOST_HTTP_PORT}:80"
         - "${NGINX_HOST_HTTPS_PORT}:443"
@@ -621,6 +626,7 @@ services:
         - POSTGRES_CONFLUENCE_PASSWORD=${CONFLUENCE_POSTGRES_PASSWORD}
       networks:
         - backend
+        - external
 
 ### PostgreSQL PostGis ###################################
     postgres-postgis:
@@ -1090,8 +1096,9 @@ services:
         - ./data/certbot/certs/:/var/certs
         - ./certbot/letsencrypt/:/var/www/letsencrypt
       environment:
-        - CN="fake.domain.com"
-        - EMAIL="fake.email@gmail.com"
+        - ENV=${CERTBOT_ENV} #change to 'production' to generate real certificates. 'staging' will by default dry run the request to prevent hitting rate limits during testing
+        - CN=${CERTBOT_CN} #comma separated values of all the domains you wish to add ssl certificates on
+        - EMAIL=${CERTBOT_EMAIL}
       networks:
         - frontend
 
